@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace linq2db.Sample.Tests
 {
@@ -104,9 +105,10 @@ namespace linq2db.Sample.Tests
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
             {
                 entity.SetTableName(entity.GetTableName().ToSnakeCase());
+                var soi = StoreObjectIdentifier.Table(entity.GetTableName(), entity.GetSchema());
 
                 foreach (var property in entity.GetProperties()) 
-                    property.SetColumnName(property.GetColumnName().ToSnakeCase());
+                    property.SetColumnName(property.GetColumnName(soi).ToSnakeCase());
 
                 foreach (var key in entity.GetKeys()) 
                     key.SetName(key.GetName().ToSnakeCase());
@@ -115,7 +117,7 @@ namespace linq2db.Sample.Tests
                     key.SetConstraintName(key.GetConstraintName().ToSnakeCase());
 
                 foreach (var index in entity.GetIndexes()) 
-                    index.SetName(index.GetName().ToSnakeCase());
+                    index.SetDatabaseName(index.GetDatabaseName().ToSnakeCase());
             }
             return modelBuilder;
         }
