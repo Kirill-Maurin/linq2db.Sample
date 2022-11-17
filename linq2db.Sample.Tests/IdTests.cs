@@ -8,8 +8,8 @@ using LinqToDB.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Logging;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
 using Xunit;
-using static linq2db.Sample.Tests.AAA;
 
 namespace linq2db.Sample.Tests
 {
@@ -19,7 +19,7 @@ namespace linq2db.Sample.Tests
         {
             _efContext = new TestContext(
                 new DbContextOptionsBuilder()
-                    .ReplaceService<IValueConverterSelector, IdValueConverterSelector>()
+                    .ReplaceService<IValueConverterSelector, IdValueConverterSelector<NpgsqlValueConverterSelector>>()
                     .UseLoggerFactory(LoggerFactory.Create(b => b.AddConsole()))
                     .EnableSensitiveDataLogging()
                     .UseNpgsql(
@@ -45,23 +45,23 @@ namespace linq2db.Sample.Tests
             => _efContext
                 .Arrange(c => CreateLinqToDbContext(c))
                 .Act(c => c.Insert(new Entity { Name = name }))
-                .Assert(id => _efContext.Entitites.Single(e => e.Id == id).Name.Should().Be(name));
+                .Assert(id => _efContext.Entities.Single(e => e.Id == id).Name.Should().Be(name));
 
         [Theory]
         [InlineData("test insert")]
         public void TestInsertWithoutNew(string name) 
-            => _efContext.Entitites
+            => _efContext.Entities
                 .Arrange(e => e.ToLinqToDBTable())
                 .Act(e => e.InsertWithInt64Identity(() => new Entity {Name = name}))
-                .Assert(id => _efContext.Entitites.Single(e => e.Id == id).Name.Should().Be(name));
+                .Assert(id => _efContext.Entities.Single(e => e.Id == id).Name.Should().Be(name));
 
         [Theory]
         [InlineData("test insert ef")]
         public void TestInsertEfCore(string name) 
             => _efContext
-                .Arrange(c => c.Entitites.Add(new Entity {Name = "test insert ef"}))
+                .Arrange(c => c.Entities.Add(new Entity {Name = "test insert ef"}))
                 .Act(_ => _efContext.SaveChanges())
-                .Assert(_ => _efContext.Entitites.Single().Name.Should().Be(name));
+                .Assert(_ => _efContext.Entities.Single().Name.Should().Be(name));
 
         [Theory]
         [InlineData(false, false)]
@@ -72,7 +72,7 @@ namespace linq2db.Sample.Tests
             => _efContext
                 .Arrange(c => InsertDefaults(CreateLinqToDbContext(c)))
                 .Act(c => c
-                    .Entitites
+                    .Entities
                     .Where(e => e.Name == "Alpha")
                     .Include(e => e.Details)
                     .ThenInclude(d => d.Details)
@@ -90,7 +90,7 @@ namespace linq2db.Sample.Tests
                 .Arrange(c => InsertDefaults(CreateLinqToDbContext(c)))
                 .Act(c =>
                 {
-                    var q = c.Entitites
+                    var q = c.Entities
                         .Include(e => e.Items)
                         .ThenInclude(x => x.Item);
                     var f = q.AsLinqToDb(l2db).AsTracking().ToArray();
@@ -108,7 +108,7 @@ namespace linq2db.Sample.Tests
         public void TestManyToManyInclude(bool l2db, bool tracking)
             => _efContext
                 .Arrange(c => InsertDefaults(CreateLinqToDbContext(c)))
-                .Act(c => c.Entitites
+                .Act(c => c.Entities
                     .Include(e => e.Items)
                     .ThenInclude(x => x.Item)
                     .AsLinqToDb(l2db)
@@ -183,11 +183,12 @@ namespace linq2db.Sample.Tests
             }
 
 
-            public DbSet<Entity> Entitites { get; set; } 
+            public DbSet<Entity> Entities { get; set; } 
             public DbSet<Detail> Details { get; set; } 
             public DbSet<SubDetail> SubDetails { get; set; } 
             public DbSet<Item> Items { get; set; }
             public DbSet<Child> Children { get; set; }
+            public DbSet<Linked> Linked { get; set; }
         }
 
         public void Dispose() => _efContext.Dispose();

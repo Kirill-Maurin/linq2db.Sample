@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace linq2db.Sample.Tests
 {
@@ -34,17 +33,16 @@ namespace linq2db.Sample.Tests
 
                     if (!entities.Contains(entity))
                         continue;
-
+                    
                     if (entity == entityType.ClrType && property.Name == "Id")
-                    {
-                        modelBuilder
-                            .Entity(entityType.Name)
-                            .HasKey(property.Name);
                         continue;
-                    }
 
                     var oneNavigation = entityType.ClrType.GetProperties()
                         .SingleOrDefault(p => p.PropertyType == entity);
+
+                    if (oneNavigation != null)
+                        continue;
+                    
                     var manyNavigation = entity.GetProperties()
                         .SingleOrDefault(p =>
                         {
@@ -54,10 +52,13 @@ namespace linq2db.Sample.Tests
                                    && pt.GetGenericArguments()[0] == entityType.ClrType;
                         });
 
+                    if (manyNavigation != null)
+                        continue;
+
                     modelBuilder
                         .Entity(entityType.Name)
-                        .HasOne(entity, oneNavigation?.Name)
-                        .WithMany(manyNavigation?.Name)
+                        .HasOne(entity)
+                        .WithMany()
                         .HasForeignKey(property.Name)
                         .OnDelete(DeleteBehavior.Restrict);
                 }
@@ -105,10 +106,9 @@ namespace linq2db.Sample.Tests
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
             {
                 entity.SetTableName(entity.GetTableName().ToSnakeCase());
-                var soi = StoreObjectIdentifier.Table(entity.GetTableName(), entity.GetSchema());
 
                 foreach (var property in entity.GetProperties()) 
-                    property.SetColumnName(property.GetColumnName(soi).ToSnakeCase());
+                    property.SetColumnName(property.GetColumnBaseName().ToSnakeCase());
 
                 foreach (var key in entity.GetKeys()) 
                     key.SetName(key.GetName().ToSnakeCase());

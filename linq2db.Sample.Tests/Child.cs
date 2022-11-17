@@ -7,4 +7,11 @@
         public string Name { get; set; }
         public Entity Parent { get; set; }
     }
+    
+    public sealed class Linked : IHasWriteableId<Linked, long>
+    {
+        public Id<Linked, long> Id { get; set; }
+        public Id<Entity, long> EntityId { get; set; }
+        public string Name { get; set; }
+    }
 }
