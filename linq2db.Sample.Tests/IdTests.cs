@@ -24,7 +24,8 @@ namespace linq2db.Sample.Tests
                     .EnableSensitiveDataLogging()
                     .UseNpgsql(
                         "Server=localhost;Port=5432;Database=test_ef_data;" +
-                        "User Id=postgres;Password=TestPassword;Pooling=true;MinPoolSize=10;MaxPoolSize=100;")
+                        "User Id=postgres;Password=TestPassword;Pooling=true;MinPoolSize=10;MaxPoolSize=100;",
+                        o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery))
                     .Options);
             _efContext.Database.EnsureDeleted();
             _efContext.Database.EnsureCreated();
