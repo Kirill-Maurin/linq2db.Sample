@@ -91,13 +91,6 @@ namespace linq2db.Sample.Tests
             internal TMock Mock { get; }
         }
 
-        public readonly struct ActResult<T, TMock>
-        {
-            internal ActResult(T @object, TMock mock, Exception exception)
-                => (Object, Mock, Exception) = (@object, mock, exception);
-            internal T Object { get; }
-            internal TMock Mock { get; }
-            internal Exception Exception { get; }
-        }
+        public readonly record struct ActResult<T, TMock>(T Object, TMock Mock, Exception Exception);
     }
 }
