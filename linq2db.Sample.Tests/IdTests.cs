@@ -194,6 +194,10 @@ namespace linq2db.Sample.Tests
             public DbSet<Linked> Linked { get; set; }
         }
 
-        public void Dispose() => _efContext.Dispose();
+        public void Dispose()
+        {
+            _efContext.Database.EnsureDeleted();
+            _efContext.Dispose();
+        }
     }
 }
