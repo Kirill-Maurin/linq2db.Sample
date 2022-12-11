@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using FluentAssertions;
 using LinqToDB;
 using LinqToDB.Common.Logging;
@@ -23,7 +24,8 @@ namespace linq2db.Sample.Tests
                     .UseLoggerFactory(LoggerFactory.Create(b => b.AddConsole()))
                     .EnableSensitiveDataLogging()
                     .UseNpgsql(
-                        "Server=localhost;Port=5432;Database=test_ef_data;" +
+                        "Server=localhost;Port=5432;" +
+                        $"Database=test_ef_data{Thread.CurrentThread.ManagedThreadId};" +
                         "User Id=postgres;Password=TestPassword;Pooling=true;MinPoolSize=10;MaxPoolSize=100;",
                         o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery))
                     .Options);
