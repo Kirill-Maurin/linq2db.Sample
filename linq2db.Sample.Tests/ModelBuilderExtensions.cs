@@ -108,7 +108,7 @@ namespace linq2db.Sample.Tests
                 entity.SetTableName(entity.GetTableName().ToSnakeCase());
 
                 foreach (var property in entity.GetProperties()) 
-                    property.SetColumnName(property.GetColumnBaseName().ToSnakeCase());
+                    property.SetColumnName(property.GetColumnName().ToSnakeCase());
 
                 foreach (var key in entity.GetKeys()) 
                     key.SetName(key.GetName().ToSnakeCase());
